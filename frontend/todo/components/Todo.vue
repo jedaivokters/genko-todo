@@ -12,7 +12,7 @@
           </div>
         </div>
         <div>
-          <button class="btn btn-danger" @click="deleteAll"><i class="fas fa-trash"></i><span class="ml-1">Delete all Tasks</span></button>
+          <button v-if="todos.length > 0" class="btn btn-danger" @click="deleteAll"><i class="fas fa-trash"></i><span class="ml-1">Delete all Tasks</span></button>
           <button v-if="completedTodos.length > 0" class="btn btn-warning" @click="deleteCompleted"><i class="fas fa-trash"></i> Delete Completed Tasks</button>
         </div>
       </div>
@@ -22,7 +22,7 @@
             <template v-if="editModeIndex !== index">
               <i :class="['far', todo.completed ? 'fa-check-circle marker text-success' : 'fa-check-circle marker']" @click="toggleCompleteTodo(todo.id)"></i>
               <div style="width: 100%;" @click="toggleEditMode(index)">{{ todo.text }}</div>
-              <button class="btn btn-danger btn-sm trash" @click="deleteTodo(index)"><i class="fas fa-trash"></i></button>
+              <button class="btn btn-danger btn-sm trash" @click="deleteTodo(todo.id, index)"><i class="fas fa-trash"></i></button>
             </template>
             <template v-else>
               <input type="text" :value="todo.text" @keyup.enter="updateTodoText($event, todo.id)" autofocus>
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="add-todo">
-          <input type="text" v-model="newTodo" placeholder="Add a new task" class="form-control rounded-pill">
+          <input type="text" @keyup.enter="addTodo" v-model="newTodo" placeholder="Add a new task" class="form-control rounded-pill">
           <button @click="addTodo" class="btn btn-primary rounded-pill"><i class="fas fa-plus"></i></button>
         </div>
       </div>
@@ -64,8 +64,8 @@
           this.newTodo = '';
         }
       },
-      async deleteTodo(id) {
-        await this.$store.dispatch('deleteTodo', id);
+      async deleteTodo(id, index) {
+        await this.$store.dispatch('deleteTodo', { id, index });
       },
       async completeTodo(index) {
         await this.$store.dispatch('completeTodo', this.todos[index].id);
@@ -90,7 +90,7 @@
         await this.$store.dispatch('deleteAllTodos');
       },
       async deleteCompleted() {
-        // await this.$store.dispatch('deleteAllTodos');
+        await this.$store.dispatch('deleteAllCompletedTodos');
       }
     }
   };

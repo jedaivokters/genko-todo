@@ -1,0 +1,43 @@
+# docker-compose.yml
+
+version: '3'
+
+services:
+  php:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./todo:/var/www/html
+    networks:
+      - genko_todo
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3333:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./todo:/var/www/html
+    depends_on:
+      - php
+    networks:
+      - genko_todo
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3310:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - genko_todo
+
+networks:
+  genko_todo:
+
+volumes:
+  db_data:

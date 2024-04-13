@@ -1,8 +1,8 @@
-import gql from 'graphql-tag';
+import { gql } from 'graphql-tag';
 
-const apiUrl = 'YOUR_GRAPHQL_API_URL';
+const apiUrl = '/graphql/';
 
-const ADD_TODO_MUTATION = gql`
+const ADD_TODO_MUTATION = `
   mutation AddTodo($text: String!) {
     addTodo(text: $text) {
       id
@@ -12,15 +12,15 @@ const ADD_TODO_MUTATION = gql`
   }
 `;
 
-const DELETE_TODO_MUTATION = gql`
-  mutation DeleteTodo($id: ID!) {
-    deleteTodo(id: $id)
+const DELETE_TODO_MUTATION = `
+  mutation DestroyTodo($id: ID!) {
+    destroyTodo(id: $id)
   }
 `;
 
-const UPDATE_TODO_MUTATION = gql`
+const UPDATE_TODO_MUTATION = `
   mutation UpdateTodo($id: ID!, $text: String!, $completed: Boolean!) {
-    updateTodo(id: $id, text: $text) {
+    updateTodo(id: $id, text: $text, completed: $completed) {
       id
       text
       completed
@@ -28,11 +28,20 @@ const UPDATE_TODO_MUTATION = gql`
   }
 `;
 
+const DELETE_TODOS_MUTATION = `
+  mutation DestroyAllTodos {
+    destroyAllTodos
+  }
+`;
+
+const DELETE_COMPLETED_TODOS_MUTATION = `
+  mutation DestroyCompletedTodos {
+    destroyCompletedTodos
+  }
+`;
+
 export const state = () => ({
-    todos: [
-        {id: 1, completed: false, text: 'Task'},
-        {id: 2, completed: false, text: 'Task 2'}
-    ],
+    todos: [],
 });
 
 export const mutations = {
@@ -42,8 +51,8 @@ export const mutations = {
     addTodo(state, todo) {
         state.todos.push(todo);
     },
-    deleteTodo(state, id) {
-        state.todos = state.todos.filter(todo => todo.id !== id);
+    deleteTodo(state, index) {
+        state.todos.splice(index, 1);
     },
     updateTodoText(state, { id, text }) {
         const todo = state.todos.find(todo => todo.id === id);
@@ -57,8 +66,16 @@ export const mutations = {
             todo.completed = completed;
         }
     },
+    clearTodos(state) {
+        // Clear the todos array
+        state.todos = [];
+    },
+    clearCompletedTodos(state) {
+        state.todos = state.todos.filter(todo => !todo.completed);
+    }
 };
 
+// Actions
 export const actions = {
     async fetchTodos({ commit }) {
       try {
@@ -89,15 +106,14 @@ export const actions = {
         console.error('Error adding todo:', error);
       }
     },
-    async deleteTodo({ commit, dispatch }, id) {
+    async deleteTodo({ commit, dispatch }, {id, index}) {
       try {
         await this.$axios.post(apiUrl, {
           query: DELETE_TODO_MUTATION,
           variables: { id },
         });
-        commit('deleteTodo', id);
 
-        await dispatch('fetchTodos');
+        commit('deleteTodo', index);
 
       } catch (error) {
         console.error('Error deleting todo:', error);
@@ -132,4 +148,27 @@ export const actions = {
           console.error('Error updating todo complete:', error);
         }
       },
+    async deleteAllTodos({ commit }) {
+        try {
+            await this.$axios.post(apiUrl, {
+                query: DELETE_TODOS_MUTATION,
+            });
+
+            // Commit the mutation to clear the todos array
+            commit('clearTodos');
+        } catch (error) {
+            console.error('Error deleting all todos:', error);
+        }
+    },
+    async deleteAllCompletedTodos({ commit }) {
+        try {
+            await this.$axios.post(apiUrl, {
+                query: DELETE_COMPLETED_TODOS_MUTATION,
+            });
+
+            commit('clearCompletedTodos');
+        } catch (error) {
+            console.error('Error deleting all completed todos:', error);
+        }
+    }
 };
