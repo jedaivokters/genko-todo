@@ -14,6 +14,13 @@ Demonstration using graphQL managing a todo list
 5. Run: `docker-compose exec php php artisan migrate`
 
 
+***Running Frontend in Local:***
+1. Using `terminal` change directory `frontend > todo`
+2. Run: `npm i`
+3. Run: `npm run dev`
+4. Browse: the URL provided by the `run dev`
+
+
 ---
 ## **Other info:**
 1. Backend running in `localhost:3333`
