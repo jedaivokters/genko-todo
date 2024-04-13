@@ -11,19 +11,21 @@
             <span class="badge"><span class="counter">{{ completedTodos.length }}</span></span>
           </div>
         </div>
-        <button class="btn btn-danger" @click="deleteAll"><i class="fas fa-trash"></i><span class="ml-1">Delete all Tasks</span></button>
-        <button v-if="completedTodos.length > 0" class="btn btn-danger" @click="deleteCompleted"><i class="fas fa-trash"></i> Delete Completed Tasks</button>
+        <div>
+          <button class="btn btn-danger" @click="deleteAll"><i class="fas fa-trash"></i><span class="ml-1">Delete all Tasks</span></button>
+          <button v-if="completedTodos.length > 0" class="btn btn-warning" @click="deleteCompleted"><i class="fas fa-trash"></i> Delete Completed Tasks</button>
+        </div>
       </div>
       <div class="card-body">
         <div v-for="(todo, index) in todos" :key="index" class="todo-item">
           <div class="todo-box">
-            <template v-if="!todo.editMode">
-              <i :class="['far', todo.completed ? 'fa-check-circle marker text-success' : 'fa-check-circle marker']" @click="toggleCompleteTodo(index)"></i>
-              <div style="width: 100%;" @click="toggleEditMode(todo)">{{ todo.text }}</div>
+            <template v-if="editModeIndex !== index">
+              <i :class="['far', todo.completed ? 'fa-check-circle marker text-success' : 'fa-check-circle marker']" @click="toggleCompleteTodo(todo.id)"></i>
+              <div style="width: 100%;" @click="toggleEditMode(index)">{{ todo.text }}</div>
               <button class="btn btn-danger btn-sm trash" @click="deleteTodo(index)"><i class="fas fa-trash"></i></button>
             </template>
             <template v-else>
-              <input type="text" v-model="todo.text" @keyup.enter="updateTodo(index)" @blur="updateTodo(index)" autofocus>
+              <input type="text" :value="todo.text" @keyup.enter="updateTodoText($event, todo.id)" autofocus>
             </template>
           </div>
         </div>
@@ -36,145 +38,148 @@
   </template>
   
   <script>
+  import { mapState } from 'vuex';
+
   export default {
     name: 'Todo',
+    mounted() {
+      this.$store.dispatch('fetchTodos');
+    },
     data() {
       return {
-        todos: [
-          {text: "test", completed: true, editMode: false},
-          {text: "test 2", completed: false, editMode: false}
-        ],
-        newTodo: ''
+        newTodo: '',
+        editModeIndex: null // Track the index of the todo being edited
       };
     },
     computed: {
+      ...mapState(['todos']),
       completedTodos() {
         return this.todos.filter(todo => todo.completed);
       }
     },
     methods: {
-      toggleEditMode(todo) {
-        todo.editMode = true;
-      },
-      toggleCompleteTodo(index) {
-        // Your implementation for completing a todo
-        console.log("Completing todo:", index);
-        const todoCloned = Object.assign({}, this.todos[index]);
-
-        this.todos[index].completed = (todoCloned.completed) ? false : true;
-      },
-      deleteTodo(index) {
-        // Your implementation for deleting a todo
-        console.log("Deleting todo:", index);
-      },
-      addTodo() {
+      async addTodo() {
         if (this.newTodo.trim() !== '') {
-          // Your implementation for adding a new todo
-          this.todos.push({
-            completed: false,
-            text: this.newTodo,
-            editMode: false
-          });
-          console.log("Adding new todo:", this.newTodo);
+          await this.$store.dispatch('addTodo', this.newTodo);
           this.newTodo = '';
-
         }
       },
-      deleteAll() {
-        // Your implementation for deleting all todos
-        console.log("Deleting all todos");
+      async deleteTodo(id) {
+        await this.$store.dispatch('deleteTodo', id);
       },
-      updateTodo(index) {
-        this.todos[index].editMode = false;
+      async completeTodo(index) {
+        await this.$store.dispatch('completeTodo', this.todos[index].id);
+      },
+      toggleEditMode(index) {
+        this.editModeIndex = this.editModeIndex === index ? null : index;
+      },
+      async updateTodoText(event, id) {
+        const text = event.target.value;
+
+        await this.$store.dispatch('updateTodoText', { id, text });
+
+        this.editModeIndex = null;
+      },
+      async toggleCompleteTodo(id) {
+        const todo = Object.assign({}, this.todos.find(todo => todo.id === id));
+        const completed = (todo.completed) ? false : true;
+
+        await this.$store.dispatch('updateTodoComplete', { id, completed });
+      },
+      async deleteAll() {
+        await this.$store.dispatch('deleteAllTodos');
+      },
+      async deleteCompleted() {
+        // await this.$store.dispatch('deleteAllTodos');
       }
     }
   };
   </script>
   
   <style scoped>
-.todo-card {
-  margin-top: 20px;
-}
+    .todo-card {
+      margin-top: 20px;
+    }
 
-.pill-counter {
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-  border-radius: 20px;
-  padding: 4px 10px;
-}
+    .pill-counter {
+      display: flex;
+      align-items: center;
+      margin-right: 10px;
+      border-radius: 20px;
+      padding: 4px 10px;
+    }
 
-.bg-primary {
-  background-color: #007bff; /* Blue background */
-}
+    .bg-primary {
+      background-color: #007bff; /* Blue background */
+    }
 
-.bg-success {
-  background-color: #28a745; /* Green background */
-}
+    .bg-success {
+      background-color: #28a745; /* Green background */
+    }
 
-.badge {
-  background-color: white; /* White background */
-  color: black; /* Black text */
-  border-radius: 50%;
-  padding: 8px;
-}
+    .badge {
+      background-color: white; /* White background */
+      color: black; /* Black text */
+      border-radius: 50%;
+      padding: 8px;
+    }
 
-.counter {
-  font-size: 12px;
-  color: #007bff;
-}
+    .counter {
+      font-size: 12px;
+      color: #007bff;
+    }
 
-.label {
-  margin-right: 5px;
-  color: white;
-}
+    .label {
+      margin-right: 5px;
+      color: white;
+    }
 
-.todo-item {
-  margin-top: 10px;
-}
+    .todo-item {
+      margin-top: 10px;
+    }
 
-.todo-box {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid #ccc;
-}
+    .todo-box {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
 
-.todo-box:hover {
-  background-color: #f8f9fa; /* Light gray background on hover */
-}
+    .todo-box:hover {
+      background-color: #f8f9fa; /* Light gray background on hover */
+    }
 
-.todo-box .marker {
-  font-size: 26px;
-  margin-right: 10px;
-  cursor: pointer;
-}
+    .todo-box .marker {
+      font-size: 26px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
 
-.todo-box .marker:hover {
-  color: green; /* Change color on hover */
-}
+    .todo-box .marker:hover {
+      color: green; /* Change color on hover */
+    }
 
-.todo-box button {
-  margin-left: auto; /* Align the trash icon to the right */
-  visibility: hidden; /* Hide the trash icon by default */
-}
+    .todo-box button {
+      margin-left: auto; /* Align the trash icon to the right */
+      visibility: hidden; /* Hide the trash icon by default */
+    }
 
-.todo-box:hover button {
-  visibility: visible; /* Show the trash icon on hover */
-}
+    .todo-box:hover button {
+      visibility: visible; /* Show the trash icon on hover */
+    }
 
-.add-todo {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-}
+    .add-todo {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+    }
 
-.add-todo input {
-  flex: 1;
-  margin-right: 10px;
-}
+    .add-todo input {
+      flex: 1;
+      margin-right: 10px;
+    }
 
-.add-todo button {
-  width: 40px;
-}
-</style>
+    .add-todo button {
+      width: 40px;
+    }
+  </style>
