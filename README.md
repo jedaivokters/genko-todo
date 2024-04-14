@@ -22,6 +22,19 @@ Demonstration using graphQL managing a todo list
 
 
 ---
-## **Other info:**
+### **Other info:**
 1. Backend running in `localhost:3333`
 2. Frontend default to run in `localhost:3000`
+   
+### **Running the Unit Test:**
+1. Using `terminal` change directory `backend`
+2. Run: `docker-compose exec php php artisan test`
+
+### **Challenges in development:**
+ - CORS issue from the frontend when calling graphQL backend. Workaround, did axios proxy 
+ - Some minor bugs encounter when testing end to end.
+
+### **Future enhancement**
+ - More validation for both frontend and backend
+ - Enhancement in UX like a loading screen when there is an asynchronous HTTP request.
+ - More cleaner code structure.
