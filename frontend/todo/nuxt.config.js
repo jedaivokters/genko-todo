@@ -42,12 +42,12 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/' || '/',
+    baseURL: '/',
     proxy: true // Can be also an object with default options
   },
 
   proxy: {
-    '/graphql/': 'http://localhost:3333',
+    '/graphql/': 'http://localhost:3333', // Hard coded for now local demo. needed to be in separate file like .env
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
