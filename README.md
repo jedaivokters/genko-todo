@@ -9,7 +9,7 @@ Demonstration using graphQL managing a todo list
 2. Run: `docker-compose run --rm php composer install`
 3. *On first set up only*: 
     - Change directory inside the `todo` 
-    - Copy the `.env.example` to `.env`
+    - Copy the `env.example` to `.env`
 4. Go back to `backend` folder then Run: `docker-compose up -d`
 5. Run: `docker-compose exec php php artisan migrate`
 
