@@ -76,6 +76,28 @@ class TodoGraphQLTest extends TestCase
         ]);
     }
 
+    public function testFailedAddTodos()
+    {
+        $todo = Todo::factory()->makeOne()->toArray();
+        $todo['text'] = '';
+
+        // Make a GraphQL mutation to add a todo
+        $response = $this->graphQL('
+            mutation AddTodo($text: String!) {
+                addTodo(text: $text) {
+                    id
+                    text
+                    completed
+                }
+            }
+        ', $todo);
+
+        // Assert that response contains errors
+        $response->assertJsonStructure([
+            'errors'
+        ]);
+    }
+
     public function testUpdateTodo()
     {
         // Create a todo to update
