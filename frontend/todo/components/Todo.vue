@@ -21,7 +21,9 @@
           <div class="todo-box">
             <template v-if="editModeIndex !== index">
               <i :class="['far', todo.completed ? 'fa-check-circle marker text-success' : 'fa-check-circle marker']" @click="toggleCompleteTodo(todo.id)"></i>
-              <div style="width: 100%;" @click="toggleEditMode(index)">{{ todo.text }}</div>
+              <div class="w-100" @click="toggleEditMode(index)">
+                <div :class="[todo.completed ? 'completed' : '']">{{ todo.text }}</div>
+              </div>
               <button class="btn btn-danger btn-sm trash" @click="deleteTodo(todo.id, index)"><i class="fas fa-trash"></i></button>
             </template>
             <template v-else>
@@ -166,6 +168,10 @@
 
     .todo-box:hover button {
       visibility: visible; /* Show the trash icon on hover */
+    }
+
+    .todo-box .completed {
+      text-decoration: line-through;
     }
 
     .add-todo {
